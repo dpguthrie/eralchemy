@@ -74,10 +74,12 @@ child_parent_id = ERColumn(
 )
 
 relation = Relation(
-    right_col=u'parent',
-    left_col=u'child',
-    right_cardinality='?',
-    left_cardinality='*',
+    right_table=u'parent',
+    right_column=u'id',
+    left_table=u'child',
+    left_column=u'parent_id',
+    right_cardinality='*',
+    left_cardinality='?',
 )
 
 exclude_id = ERColumn(
@@ -92,10 +94,12 @@ exclude_parent_id = ERColumn(
 )
 
 exclude_relation = Relation(
-    right_col=u'parent',
-    left_col=u'exclude',
-    right_cardinality='?',
-    left_cardinality='*',
+    right_table=u'parent',
+    right_column=u'id',
+    left_table=u'exclude',
+    left_column=u'parent_id',
+    right_cardinality='*',
+    left_cardinality='?',
 )
 
 relationships = [relation, exclude_relation]
@@ -128,8 +132,8 @@ markdown = \
     [exclude]
         *id {label:"INTEGER"}
         parent_id {label:"INTEGER"}
-    parent ?--* child
-    parent ?--* exclude
+    parent."id" *--? child."parent_id"
+    parent."id" *--? exclude."parent_id"
     """
 
 
@@ -189,7 +193,7 @@ def check_filter(actual_tables, actual_relationships):
     assert [len(t.columns) for t in actual_tables] == [2, 2, 2]
 
 
-def create_db(db_uri="postgresql://postgres/test", use_sqlite=False):
+def create_db(db_uri="postgresql://postgres:postgres@localhost/test", use_sqlite=False):
     engine = create_engine(db_uri)
     tables = (use_sqlite and [m.__table__ for m in (Parent, Child, Exclude)]) or None
     Base.metadata.create_all(engine, tables=tables)
